@@ -1,7 +1,8 @@
 import { GoogleAuth } from 'google-auth-library';
-import dotenv from 'dotenv';
 
-dotenv.config(); // Load environment variables from .env file
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+}
 
 export default async function handler(req, res) {
     try {
