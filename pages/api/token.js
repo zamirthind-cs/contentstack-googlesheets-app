@@ -7,11 +7,14 @@ if (process.env.NODE_ENV !== 'production') {
 export default async function handler(req, res) {
     try {
         // Extract environment variables
-        const { GOOGLE_PRIVATE_KEY, GOOGLE_CLIENT_EMAIL } = process.env;
+        let { GOOGLE_PRIVATE_KEY, GOOGLE_CLIENT_EMAIL } = process.env;
 
         if (!GOOGLE_PRIVATE_KEY || !GOOGLE_CLIENT_EMAIL) {
             throw new Error("Missing required environment variables: GOOGLE_PRIVATE_KEY and GOOGLE_CLIENT_EMAIL.");
         }
+
+        // Ensure the private key is correctly formatted
+        GOOGLE_PRIVATE_KEY = GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
 
         // Initialize the GoogleAuth client
         const auth = new GoogleAuth({
