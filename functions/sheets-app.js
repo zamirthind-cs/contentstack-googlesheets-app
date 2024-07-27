@@ -33,7 +33,7 @@ const handler = async(req, res) => {
             console.log(`Range: ${range}`);
             console.log(`Values: ${JSON.stringify(values)}`);
 
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}:sheets-app?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
 
             const response = await client.request({
                 url,
