@@ -1,6 +1,8 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+This app is Next.js powered app that can be used along with the Solution Guide "Pushing Data to Google Sheets with Contentstack"
 
-## Getting Started
+## Follow the Guide by first creating a new a sheet and importing the Campaigns template
+
+## Getting Started HERE
 
 First, run the development server:
 
