@@ -24,6 +24,11 @@ const handler = async(req, res) => {
         }
 
         console.log("Environment variables are set.");
+
+        // Ensure the private key is correctly formatted
+        if (GOOGLE_PRIVATE_KEY.startsWith('"') && GOOGLE_PRIVATE_KEY.endsWith('"')) {
+            GOOGLE_PRIVATE_KEY = GOOGLE_PRIVATE_KEY.slice(1, -1);
+        }
         GOOGLE_PRIVATE_KEY = GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
 
         const auth = new GoogleAuth({
