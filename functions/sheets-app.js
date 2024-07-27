@@ -5,35 +5,50 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const handler = async(req, res) => {
-    if (req.method === 'POST') {
-        try {
-            let { GOOGLE_PRIVATE_KEY, GOOGLE_CLIENT_EMAIL } = process.env;
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-            if (!GOOGLE_PRIVATE_KEY || !GOOGLE_CLIENT_EMAIL) {
-                throw new Error("Missing required environment variables: GOOGLE_PRIVATE_KEY and GOOGLE_CLIENT_EMAIL.");
-            }
+    try {
+        console.log("Request method:", req.method);
+        console.log("Request query:", req.query);
+        console.log("Request body:", req.body);
 
-            GOOGLE_PRIVATE_KEY = GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
+        let { GOOGLE_PRIVATE_KEY, GOOGLE_CLIENT_EMAIL } = process.env;
 
-            const auth = new GoogleAuth({
-                credentials: {
-                    client_email: GOOGLE_CLIENT_EMAIL,
-                    private_key: GOOGLE_PRIVATE_KEY,
-                },
-                scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-            });
+        // Check if environment variables are set
+        if (!GOOGLE_PRIVATE_KEY || !GOOGLE_CLIENT_EMAIL) {
+            console.error("Environment variables not set correctly.");
+            throw new Error("Missing required environment variables: GOOGLE_PRIVATE_KEY and GOOGLE_CLIENT_EMAIL.");
+        }
 
-            const client = await auth.getClient();
+        console.log("Environment variables are set.");
+        GOOGLE_PRIVATE_KEY = GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
 
+        const auth = new GoogleAuth({
+            credentials: {
+                client_email: GOOGLE_CLIENT_EMAIL,
+                private_key: GOOGLE_PRIVATE_KEY,
+            },
+            scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+        });
+
+        const client = await auth.getClient();
+
+        if (req.method === 'POST') {
             const { spreadsheetId, range, values } = req.body;
+
             if (!spreadsheetId || !range || !values) {
+                console.error("Missing required body parameters.");
                 throw new Error("Missing required body parameters: spreadsheetId, range, values.");
             }
+
             console.log(`Spreadsheet ID: ${spreadsheetId}`);
             console.log(`Range: ${range}`);
             console.log(`Values: ${JSON.stringify(values)}`);
 
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}:sheets-app?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
 
             const response = await client.request({
                 url,
@@ -43,35 +58,16 @@ const handler = async(req, res) => {
                 },
             });
 
+            console.log("POST request successful:", response.data);
             res.status(200).json({ data: response.data });
-        } catch (error) {
-            console.error('Error writing data to Google Sheets:', error.message, error.stack);
-            res.status(500).json({ error: `Error writing data to Google Sheets: ${error.message}` });
-        }
-    } else if (req.method === 'GET') {
-        try {
-            let { GOOGLE_PRIVATE_KEY, GOOGLE_CLIENT_EMAIL } = process.env;
-
-            if (!GOOGLE_PRIVATE_KEY || !GOOGLE_CLIENT_EMAIL) {
-                throw new Error("Missing required environment variables: GOOGLE_PRIVATE_KEY and GOOGLE_CLIENT_EMAIL.");
-            }
-
-            GOOGLE_PRIVATE_KEY = GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
-
-            const auth = new GoogleAuth({
-                credentials: {
-                    client_email: GOOGLE_CLIENT_EMAIL,
-                    private_key: GOOGLE_PRIVATE_KEY,
-                },
-                scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-            });
-
-            const client = await auth.getClient();
-
+        } else if (req.method === 'GET') {
             const { spreadsheetId, range } = req.query;
+
             if (!spreadsheetId || !range) {
+                console.error("Missing required query parameters.");
                 throw new Error("Missing required query parameters: spreadsheetId, range.");
             }
+
             console.log(`Spreadsheet ID: ${spreadsheetId}`);
             console.log(`Range: ${range}`);
 
@@ -82,13 +78,14 @@ const handler = async(req, res) => {
                 method: 'GET',
             });
 
+            console.log("GET request successful:", response.data);
             res.status(200).json({ data: response.data });
-        } catch (error) {
-            console.error('Error retrieving data from Google Sheets:', error.message, error.stack);
-            res.status(500).json({ error: `Error retrieving data from Google Sheets: ${error.message}` });
+        } else {
+            res.status(405).json({ error: 'Method not allowed' });
         }
-    } else {
-        res.status(405).json({ error: 'Method not allowed' });
+    } catch (error) {
+        console.error(`Error processing request: ${error.message}`, error.stack);
+        res.status(500).json({ error: `Error processing request: ${error.message}` });
     }
 };
 
